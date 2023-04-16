@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+  </dict>
+  <key>NSHotkey</key>
+  <dict>
+    <key>enabled</key>
+    <true/>
+    <key>value</key>
+    <dict>
+      <key>keyCode</key>
+      <integer>7</integer>
+      <key>modifierFlags</key>
+      <integer>262401</integer>
+    </dict>
+  </dict>
+</dict>
+</plist>
