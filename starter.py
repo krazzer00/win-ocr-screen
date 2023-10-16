@@ -15,7 +15,7 @@ def on_activate():
             return
 
     if process is None:
-        process = subprocess.Popen(['C:/Users/krazz/AppData/Local/Programs/Python/Python310/python.exe', 'c:/Users/krazz/Desktop/ocr-screen-main/ocr_screen.py'])
+        process = subprocess.Popen(['C:/Users/krazz/AppData/Local/Programs/Python/Python310/python.exe', 'c:/Users/krazz/Desktop/OCR/win-ocr-screen/ocr_screen.py'])
     else:
         process.terminate()
         process = None
