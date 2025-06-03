@@ -20,6 +20,9 @@ pip install -r requirements.txt
 python ocr_screen.py
 ```
 
+При необходимости можно указать путь к Tesseract через переменную
+`TESSERACT_PATH` и интерпретатор Python через `PYTHON_EXECUTABLE`.
+
 Для быстрого запуска можно основаться на скриптах `ocr.sh` и `ocr.bat`.
 
 ## Горячие клавиши
