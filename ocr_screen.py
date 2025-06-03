@@ -1,4 +1,8 @@
 import sys
+import os
+import threading
+import tempfile
+import logging
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QGraphicsScene, QGraphicsView, QRubberBand, QDesktopWidget
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QCursor
 from PyQt5.QtCore import Qt, QPoint, QRect, QSize
@@ -8,8 +12,11 @@ import pyperclip
 import pytesseract
 from PyQt5 import QtWidgets
 
-# Укажите путь к tesseract.exe
-pytesseract.pytesseract.tesseract_cmd = r'D:\tesseract\tesseract.exe'
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+# Configure tesseract path from environment variable
+pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_PATH", "tesseract")
 
 class MultiScreenSelection:
     def __init__(self):
@@ -45,6 +52,23 @@ class Window(QMainWindow):
         self.setMouseTracking(True)
         self.grabMouse(Qt.CrossCursor)
 
+    def perform_ocr(self, image_path: str):
+        """Run OCR on the saved screenshot and copy result to clipboard."""
+        try:
+            img = Image.open(image_path)
+            text = pytesseract.image_to_string(img, lang='rus+eng', config='--psm 6')
+            pyperclip.copy(text)
+            logging.info("Распознанный текст: %s", text)
+        except pytesseract.TesseractNotFoundError:
+            logging.error("Tesseract not found. Set TESSERACT_PATH environment variable.")
+        except Exception as exc:
+            logging.exception("OCR processing failed: %s", exc)
+        finally:
+            try:
+                os.remove(image_path)
+            except OSError:
+                pass
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setOpacity(0.4)
@@ -71,13 +95,14 @@ class Window(QMainWindow):
             screen = QtWidgets.QApplication.screens()[screen_number]
             pixmap = screen.grabWindow(0, rect.x(), rect.y(), rect.width(), rect.height())
 
-            pixmap.save('screenshot.png', 'png')
-            img = Image.open('screenshot.png')
+            # Save screenshot to a temporary file
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png", prefix="screenshot_temp_")
+            tmp_file_path = tmp_file.name
+            tmp_file.close()
+            pixmap.save(tmp_file_path, 'png')
 
-            text = pytesseract.image_to_string(img, lang='rus+eng', config='--psm 6')
-            pyperclip.copy(text)
-
-            print("Распознанный текст:", text)
+            # Run OCR in a separate thread
+            threading.Thread(target=self.perform_ocr, args=(tmp_file_path,), daemon=True).start()
 
             self.rubber_band.hide()
             self.raise_()

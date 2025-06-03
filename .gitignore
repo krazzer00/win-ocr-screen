@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*.pyd
+.vscode/
+.DS_Store
+screenshot_temp_*.png

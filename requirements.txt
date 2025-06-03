@@ -1,4 +1,3 @@
-pyautogui
 pytesseract
 pillow
 PyQt5

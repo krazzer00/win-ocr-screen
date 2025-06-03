@@ -1,5 +1,7 @@
 import subprocess
 import psutil
+import os
+import sys
 from pynput import keyboard
 
 process = None
@@ -15,7 +17,12 @@ def on_activate():
             return
 
     if process is None:
-        process = subprocess.Popen(['C:/Users/krazz/AppData/Local/Programs/Python/Python310/python.exe', 'c:/Users/krazz/Desktop/OCR/win-ocr-screen/ocr_screen.py'])
+        python_executable = os.getenv("PYTHON_EXECUTABLE", sys.executable)
+        script_path = os.getenv(
+            "OCR_SCREEN_SCRIPT",
+            os.path.join(os.path.dirname(__file__), "ocr_screen.py"),
+        )
+        process = subprocess.Popen([python_executable, script_path])
     else:
         process.terminate()
         process = None

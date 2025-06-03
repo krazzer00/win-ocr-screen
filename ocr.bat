@@ -1,3 +1,6 @@
 @echo off
-cd %USERPROFILE%\Desktop\OCR\win-ocr-screen
-C:\Users\krazz\AppData\Local\Programs\Python\Python310\python.exe "c:\Users\krazz\Desktop\OCR\win-ocr-screen\starter.py"
+setlocal
+cd "%OCR_WORKDIR%" || cd "%~dp0"
+set "PYTHON_EXE=%PYTHON_EXECUTABLE%"
+if "%PYTHON_EXE%"=="" set "PYTHON_EXE=python"
+%PYTHON_EXE% starter.py

@@ -1,2 +1,2 @@
 #!/bin/bash
-C:/Users/krazz/AppData/Local/Programs/Python/Python310/python.exe "c:/Users/krazz/Desktop/ocr-screen-main/starter.py"
+"${PYTHON_EXECUTABLE:-python}" starter.py
