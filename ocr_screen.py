@@ -19,8 +19,9 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_PATH", "tesseract")
 
 class MultiScreenSelection:
-    def __init__(self):
+    def __init__(self, text_callback=None):
         self.windows = []
+        self.text_callback = text_callback
 
     def show(self):
         desktop = QDesktopWidget()
@@ -39,6 +40,7 @@ class Window(QMainWindow):
         super().__init__()
 
         self.multi_screen_selection = multi_screen_selection
+        self.text_callback = multi_screen_selection.text_callback
 
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
 
@@ -59,6 +61,8 @@ class Window(QMainWindow):
             text = pytesseract.image_to_string(img, lang='rus+eng', config='--psm 6')
             pyperclip.copy(text)
             logging.info("Распознанный текст: %s", text)
+            if self.text_callback:
+                self.text_callback(text)
         except pytesseract.TesseractNotFoundError:
             logging.error("Tesseract not found. Set TESSERACT_PATH environment variable.")
         except Exception as exc:
