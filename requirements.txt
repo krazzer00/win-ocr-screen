@@ -1,3 +1,4 @@
 pytesseract
 pillow
 PyQt5
+pynput
