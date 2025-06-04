@@ -11,12 +11,55 @@ from PIL import Image
 import pyperclip
 import pytesseract
 from PyQt5 import QtWidgets
+import requests
+import zipfile
+import io
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-# Configure tesseract path from environment variable
-pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_PATH", "tesseract")
+# Directory where the application stores additional files
+def get_app_dir() -> str:
+    """Return path to directory near the executable for storing resources."""
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.abspath(os.path.dirname(__file__))
+
+
+APP_DIR = get_app_dir()
+WORK_DIR = os.path.join(APP_DIR, "app_data")
+TESSERACT_DIR = os.path.join(WORK_DIR, "tesseract")
+TESSERACT_EXE = os.path.join(TESSERACT_DIR, "tesseract.exe")
+
+
+def ensure_tesseract() -> str:
+    """Download portable Tesseract if not available and return executable path."""
+    if os.path.exists(TESSERACT_EXE):
+        return TESSERACT_EXE
+
+    os.makedirs(TESSERACT_DIR, exist_ok=True)
+    url = os.getenv(
+        "TESSERACT_DOWNLOAD_URL",
+        "https://github.com/UB-Mannheim/tesseract/releases/download/v5.3.1/tesseract-5.3.1-windows-x64-portable.zip",
+    )
+    logging.info("Downloading Tesseract from %s", url)
+    try:
+        resp = requests.get(url, timeout=60)
+        resp.raise_for_status()
+        with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+            zf.extractall(TESSERACT_DIR)
+    except Exception as exc:
+        logging.error("Failed to download Tesseract: %s", exc)
+        return "tesseract"
+    return TESSERACT_EXE
+
+
+# Configure tesseract path
+tesseract_from_env = os.getenv("TESSERACT_PATH")
+if tesseract_from_env:
+    pytesseract.pytesseract.tesseract_cmd = tesseract_from_env
+else:
+    pytesseract.pytesseract.tesseract_cmd = ensure_tesseract()
 
 class MultiScreenSelection:
     def __init__(self, text_callback=None):
