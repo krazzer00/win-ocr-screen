@@ -6,6 +6,17 @@ set "PYTHON_DIR=%BASE_DIR%python"
 set "PYTHON_EXE=%PYTHON_DIR%\python.exe"
 
 REM -------------------------------------------------------------
+REM Update repository before building if git is available
+REM -------------------------------------------------------------
+if exist "%BASE_DIR%.git" (
+    git --version >nul 2>&1
+    if not errorlevel 1 (
+        echo Checking for updates in repository...
+        git -C "%BASE_DIR%" pull
+    )
+)
+
+REM -------------------------------------------------------------
 REM Install portable Python locally if it does not exist
 REM -------------------------------------------------------------
 if not exist "%PYTHON_EXE%" (
