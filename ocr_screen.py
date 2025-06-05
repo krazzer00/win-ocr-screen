@@ -3,7 +3,15 @@ import os
 import threading
 import tempfile
 import logging
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QGraphicsScene, QGraphicsView, QRubberBand, QDesktopWidget
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QGraphicsScene,
+    QGraphicsView,
+    QRubberBand,
+    QDesktopWidget,
+)
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QCursor
 from PyQt5.QtCore import Qt, QPoint, QRect, QSize
 from PIL import Image
@@ -14,6 +22,9 @@ from PyQt5 import QtWidgets
 import requests
 import zipfile
 import io
+
+# Default OCR languages
+OCR_LANGS = os.getenv("OCR_LANGS", "rus+eng")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -54,12 +65,26 @@ def ensure_tesseract() -> str:
     return TESSERACT_EXE
 
 
-# Configure tesseract path
-tesseract_from_env = os.getenv("TESSERACT_PATH")
-if tesseract_from_env:
-    pytesseract.pytesseract.tesseract_cmd = tesseract_from_env
-else:
-    pytesseract.pytesseract.tesseract_cmd = ensure_tesseract()
+
+def configure_tesseract() -> None:
+    """Configure pytesseract command from environment or download."""
+    tesseract_from_env = os.getenv("TESSERACT_PATH")
+    if tesseract_from_env:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_from_env
+    else:
+        pytesseract.pytesseract.tesseract_cmd = ensure_tesseract()
+
+
+configure_tesseract()
+
+
+def translate_text(text: str, target: str) -> str:
+    """Translate text using a free online service."""
+    params = {"q": text, "langpair": f"auto|{target}"}
+    resp = requests.get("https://api.mymemory.translated.net/get", params=params, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("responseData", {}).get("translatedText", "")
 
 class MultiScreenSelection:
     def __init__(self, text_callback=None):
@@ -101,7 +126,15 @@ class Window(QMainWindow):
         """Run OCR on the saved screenshot and copy result to clipboard."""
         try:
             img = Image.open(image_path)
-            text = pytesseract.image_to_string(img, lang='rus+eng', config='--psm 6')
+            langs = os.getenv("OCR_LANGS", OCR_LANGS)
+            text = pytesseract.image_to_string(img, lang=langs, config='--psm 6')
+            target = os.getenv("TRANSLATE_TO")
+            if target:
+                try:
+                    translation = translate_text(text, target)
+                    text += f"\n\nTranslated ({target}):\n{translation}"
+                except Exception as exc:
+                    logging.error("Translation failed: %s", exc)
             pyperclip.copy(text)
             logging.info("Распознанный текст: %s", text)
             if self.text_callback:
