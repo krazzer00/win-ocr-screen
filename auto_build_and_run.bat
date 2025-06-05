@@ -2,6 +2,8 @@
 SETLOCAL ENABLEEXTENSIONS
 
 set "BASE_DIR=%~dp0"
+rem Remove trailing backslash from BASE_DIR to avoid quoting issues
+if "%BASE_DIR:~-1%"=="\\" set "BASE_DIR=%BASE_DIR:~0,-1%"
 set "PYTHON_DIR=%BASE_DIR%python"
 set "PYTHON_EXE=%PYTHON_DIR%\python.exe"
 
