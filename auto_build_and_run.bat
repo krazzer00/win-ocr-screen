@@ -13,6 +13,8 @@ if not exist "%PYTHON_EXE%" (
     powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip -OutFile '%BASE_DIR%python.zip'"
     powershell -Command "Expand-Archive -Path '%BASE_DIR%python.zip' -DestinationPath '%PYTHON_DIR%'"
     del "%BASE_DIR%python.zip"
+    rem Enable site packages in the embedded distribution
+    powershell -Command "(Get-Content '%PYTHON_DIR%\\python310._pth') -replace '#import site','import site' | Set-Content '%PYTHON_DIR%\\python310._pth'"
     powershell -Command "Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile '%BASE_DIR%get-pip.py'"
     "%PYTHON_EXE%" "%BASE_DIR%get-pip.py" >nul
     del "%BASE_DIR%get-pip.py"
